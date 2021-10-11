@@ -313,6 +313,12 @@ export default {
         (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
     },
+    pageStateOptions() {
+      return {
+        filter: this.filter,
+        page: this.page,
+      };
+    },
   },
 
   methods: {
@@ -339,10 +345,9 @@ export default {
         price: "-",
       };
 
-      this.tickers.push(currentTicker);
+      this.tickers = [...this.tickers, currentTicker];
       this.filter = "";
 
-      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
       this.subscribeToUpdates(currentTicker.name);
     },
 
@@ -355,11 +360,19 @@ export default {
 
     select(ticker) {
       this.selectedTicker = ticker;
-      this.graph = [];
     },
   },
 
   watch: {
+    selectedTicker() {
+      this.graph = [];
+    },
+
+    tickers(newValue, oldValue) {
+      console.log(newValue === oldValue);
+      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+    },
+
     paginatedTickers() {
       if (this.paginatedTickers.length === 0 && this.page > 1) {
         this.page -= 1;
@@ -368,18 +381,13 @@ export default {
 
     filter() {
       this.page = 1;
-      window.history.pushState(
-        null,
-        document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
-      );
     },
 
-    page() {
+    pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
       );
     },
   },
